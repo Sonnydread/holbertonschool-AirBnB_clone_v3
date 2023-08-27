@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""first endpoint (route) will be to return the status"""
+"""Flask web application"""
 from flask import Flask, make_response, jsonify
 from models import storage
 from api.v1.views import app_views
