@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""User route"""
+"""Places route"""
 from flask import jsonify, abort, request
 from . import app_views
 from models import storage
@@ -11,45 +11,48 @@ from models.place import Place
 
 @app_views.route('/cities/<city_id>/places', methods=['GET'],
                  strict_slashes=False)
-def places_get(city_id):
-    """Return json file the dicionary of all places"""
-    obj_city = storage.get(City, city_id)
-    if obj_city is None:
+def places(city_id):
+    """Return json file the dictionary of all places"""
+    obj = storage.get(City, city_id)
+    if obj is None:
         abort(404)
+
     lis = []
-    for place in storage.all(Place).values():
-        if place.city_id == city_id:
-            lis.append(place.to_dict())
+    for i in storage.all(Place).values():
+        if i.city_id == city_id:
+            lis.append(i.to_dict())
+
     return jsonify(lis)
 
 
 @app_views.route('/places/<place_id>', methods=['GET'],
                  strict_slashes=False)
-def places_get_with_id(place_id):
-    """Return json file the dicionary of an object by its id"""
+def places_id(place_id):
+    """Return json file the dictionary object by its id"""
     obj = storage.get(Place, place_id)
     if obj is None:
         abort(404)
+
     return jsonify(obj.to_dict())
 
 
 @app_views.route('/cities/<city_id>/places', methods=['POST'],
                  strict_slashes=False)
 def places_post(city_id):
-    """Returns json file the dicionary of a new added object"""
+    """Return json file the dictionary a newly added object"""
     obj_state = storage.get(City, city_id)
     if obj_state is None:
         abort(404)
-    response = request.get_json()
-    if response is None:
+    data = request.get_json()
+    if data is None:
         return jsonify({"error": "Not a JSON"}), 400
-    elif 'user_id' not in response:
+    elif 'user_id' not in data:
         return jsonify({"error": "Missing user_id"}), 400
-    elif storage.get(User, response['user_id']) is None:
+    elif storage.get(User, data['user_id']) is None:
         abort(404)
     elif 'name' not in data:
         return jsonify({"error": "Missing name"}), 400
-    new_place = Place(**response, city_id=city_id)
+    new_place = Place(**data, city_id=city_id)
     storage.new(new_place)
     storage.save()
     return jsonify(new_place.to_dict()), 201
@@ -58,7 +61,7 @@ def places_post(city_id):
 @app_views.route('/places_search', methods=['POST'],
                  strict_slashes=False)
 def places_search():
-    """Search for places"""
+    """Search"""
     data = request.get_json()
     if data is None:
         return jsonify({"error": "Not a JSON"}), 400
@@ -120,7 +123,7 @@ def places_search():
 @app_views.route('/places/<place_id>', methods=['DELETE'],
                  strict_slashes=False)
 def places_delete(place_id):
-    """returns a json file with an empty dictionary if succes del"""
+    """Return a json file with an empty dictionary"""
     obj = storage.get(Place, place_id)
     if obj is None:
         abort(404)
@@ -132,16 +135,16 @@ def places_delete(place_id):
 @app_views.route('/places/<place_id>', methods=['PUT'],
                  strict_slashes=False)
 def places_put(place_id):
-    """returns a json file with the dictionary"""
+    """Return json file the dictionary object updated"""
     obj = storage.get(Place, place_id)
     if obj is None:
         abort(404)
-    data = request.get_json()
-    if data is None:
+    response = request.get_json()
+    if response is None:
         return jsonify({"error": "Not a JSON"}), 400
-    ignore = ['id', 'created_at', 'updated_at', 'user_id', 'city_id']
-    for k, v in data.items():
-        if k not in ignore:
+    data = ['id', 'created_at', 'updated_at', 'user_id', 'city_id']
+    for k, v in response.items():
+        if k not in data:
             setattr(obj, k, v)
     storage.save()
     return jsonify(obj.to_dict()), 200
